@@ -3,12 +3,16 @@ import { Image, StyleSheet, Text, View } from "react-native";
 import * as MediaLibrary from "expo-media-library";
 import { useState, useRef, useEffect } from "react";
 import Button from "./src/components/Button";
+import Timer from "./src/components/Timer";
 
 export default function App() {
   const [hasCameraPermissions, setHasCameraPermissions] = useState(null);
   const [image, setImage] = useState(null);
   const [type, setType] = useState(Camera.Constants.Type.front);
+  const [timerClicked, setTimerClicked] = useState(false);
+  const [timer, setTimer] = useState(0);
   const camreaRef = useRef(null);
+
 
   useEffect(() => {
     (async () => {
@@ -30,6 +34,12 @@ export default function App() {
     }
   };
 
+  const onPressTimerItem = (time) => {
+    console.log(time)
+    setTimerClicked((prevState) => !prevState)
+    setTimer(time)
+  }
+
   const savePicture = async () => {
     if (image) {
       try {
@@ -49,6 +59,7 @@ export default function App() {
 
   return (
     <View style={styles.container}>
+      { timerClicked && <Timer onPress={onPressTimerItem}/> }
       {!image ? (
         <Camera
           style={styles.camera}
@@ -68,6 +79,7 @@ export default function App() {
               }
               color="#f1f1f1"
             />
+            <Button icon={"back-in-time"} title="Timer" onPress={() => setTimerClicked((prevState) => !prevState)}/>
           </View>
         </Camera>
       ) : (
@@ -113,6 +125,6 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    padding: 40,
+    padding: 50,
   },
 });
