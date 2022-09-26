@@ -1,4 +1,4 @@
-import { Camera, CameraType } from "expo-camera";
+import { Camera } from "expo-camera";
 import { Image, StyleSheet, Text, View } from "react-native";
 import * as MediaLibrary from "expo-media-library";
 import { useState, useRef, useEffect } from "react";
@@ -11,8 +11,9 @@ export default function App() {
   const [type, setType] = useState(Camera.Constants.Type.front);
   const [timerClicked, setTimerClicked] = useState(false);
   const [timer, setTimer] = useState(0);
+  const [displayTimer, setDisplayTimer] = useState(timer);
+  const [timerOn, setTimerOn] = useState(false);
   const camreaRef = useRef(null);
-
 
   useEffect(() => {
     (async () => {
@@ -23,29 +24,55 @@ export default function App() {
   }, []);
 
   const takePicture = async () => {
-    if (camreaRef) {
-      try {
-        const data = await camreaRef.current.takePictureAsync();
-        console.log(data);
-        setImage(data.uri);
-      } catch (error) {
-        console.log(error);
+    setTimerOn(true);
+    setTimeout(async function () {
+      if (camreaRef) {
+        try {
+          const data = await camreaRef.current.takePictureAsync();
+          setImage(data.uri);
+          setTimerOn(false);
+        } catch (error) {
+          console.log(error);
+        }
       }
-    }
+    }, timer * 1000);
   };
 
+  useEffect(() => {
+    if (!timerOn) {
+      return;
+    }
+    setDisplayTimer(timer);
+
+    const interval = setInterval(() => {
+      setDisplayTimer((prevTimer) => prevTimer - 1);
+    }, 1000);
+
+    return () => {
+      setDisplayTimer(timer);
+      clearInterval(interval);
+    };
+  }, [timerOn, setTimerOn, timer]);
+
+  useEffect(() => {
+    if (displayTimer === 0) {
+      return () => {
+        setDisplayTimer(timer);
+        setTimerOn(false);
+      };
+    }
+  }, [timer]);
+
   const onPressTimerItem = (time) => {
-    console.log(time)
-    setTimerClicked((prevState) => !prevState)
-    setTimer(time)
-  }
+    setTimerClicked((prevState) => !prevState);
+    setTimer(time);
+  };
 
   const savePicture = async () => {
     if (image) {
       try {
         const asset = await MediaLibrary.createAssetAsync(image);
         alert("Image saved to camera roll");
-        console.log(asset);
         setImage(null);
       } catch (error) {
         console.log(error);
@@ -54,18 +81,14 @@ export default function App() {
   };
 
   if (hasCameraPermissions === false) {
-    return <Text>No access to camera</Text>;
+    return <Text>No permission to access camera</Text>;
   }
 
   return (
     <View style={styles.container}>
-      { timerClicked && <Timer onPress={onPressTimerItem}/> }
+      {timerClicked && <Timer onPress={onPressTimerItem} />}
       {!image ? (
-        <Camera
-          style={styles.camera}
-          type={type}
-          ref={camreaRef}
-        >
+        <Camera style={styles.camera} type={type} ref={camreaRef}>
           <View style={styles.buttonContainer}>
             <Button
               icon={"retweet"}
@@ -79,8 +102,18 @@ export default function App() {
               }
               color="#f1f1f1"
             />
-            <Button icon={"back-in-time"} title="Timer" onPress={() => setTimerClicked((prevState) => !prevState)}/>
+            <View style={styles.timerContainer}>
+              <Button
+                icon={"back-in-time"}
+                title="Timer"
+                onPress={() => setTimerClicked((prevState) => !prevState)}
+              />
+              <Text style={styles.timerText}>{timer}s</Text>
+            </View>
           </View>
+          {timerOn && (
+            <Text style={styles.displayTimerText}>{displayTimer}s</Text>
+          )}
         </Camera>
       ) : (
         <Image style={styles.camera} source={{ uri: image }} />
@@ -97,7 +130,7 @@ export default function App() {
           </View>
         ) : (
           <Button
-            title={"Take a picture"}
+            title={"Photo"}
             icon={"camera"}
             onPress={takePicture}
           />
@@ -116,6 +149,7 @@ const styles = StyleSheet.create({
   },
   camera: {
     flex: 1,
+    position: "relative",
   },
   takenImage: {
     flexDirection: "row",
@@ -125,6 +159,23 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
     padding: 50,
   },
+  timerText: {
+    color: "#f1f1f1",
+    fontSize: 16,
+    marginLeft: 10,
+  },
+  displayTimerText: {
+    color: "#f1f1f1",
+    fontSize: 50,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  timerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  
 });

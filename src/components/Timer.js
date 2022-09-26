@@ -15,6 +15,7 @@ export default function Timer({onPress}) {
     <View style={styles.timerContainer}>
       <FlatList
         data={[
+          { key: "0s", time: 0 },
           { key: "5s", time: 5 },
           { key: "10s", time: 10 },
           { key: "15s", time: 15 },
@@ -49,7 +50,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   timerList: {
-    height: "100%",
+    paddingTop: 10,
   },
   item: {
     fontSize: 18,
