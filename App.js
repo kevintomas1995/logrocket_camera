@@ -4,9 +4,10 @@ import * as MediaLibrary from "expo-media-library";
 import { useState, useRef, useEffect } from "react";
 import Button from "./src/components/Button";
 import Timer from "./src/components/Timer";
+import usePermission from "./src/components/usePermisson";
 
 export default function App() {
-  const [hasCameraPermissions, setHasCameraPermissions] = useState(null);
+  const hasCameraPermissions = usePermission(Camera);
   const [image, setImage] = useState(null);
   const [type, setType] = useState(Camera.Constants.Type.front);
   const [timerClicked, setTimerClicked] = useState(false);
@@ -14,14 +15,6 @@ export default function App() {
   const [displayTimer, setDisplayTimer] = useState(timer);
   const [timerOn, setTimerOn] = useState(false);
   const camreaRef = useRef(null);
-
-  useEffect(() => {
-    (async () => {
-      MediaLibrary.requestPermissionsAsync();
-      const cameraStatus = await Camera.requestCameraPermissionsAsync();
-      setHasCameraPermissions(cameraStatus.status === "granted");
-    })();
-  }, []);
 
   const takePicture = async () => {
     setTimerOn(true);
