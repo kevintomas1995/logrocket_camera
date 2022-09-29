@@ -11,7 +11,6 @@ export default function Timer({ onPress }) {
   const onClick = (time) => {
     onPress(time);
   };
-
   return (
     <View style={styles.timerContainer}>
       <FlatList
