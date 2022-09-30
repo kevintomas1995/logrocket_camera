@@ -4,7 +4,7 @@ import * as MediaLibrary from "expo-media-library";
 import { useState, useRef, useEffect } from "react";
 import Button from "./src/components/Button";
 import Timer from "./src/components/Timer";
-import usePermission from "./src/components/usePermisson";
+import usePermission from "./src/usePermisson";
 
 export default function App() {
   const hasCameraPermissions = usePermission(Camera);
@@ -14,7 +14,7 @@ export default function App() {
   const [timer, setTimer] = useState(0);
   const [displayTimer, setDisplayTimer] = useState(timer);
   const [timerOn, setTimerOn] = useState(false);
-  const camreaRef = useRef(null);
+  const cameraRef = useRef(null);
 
   const takePicture = async () => {
     setTimerOn(true);
@@ -81,7 +81,7 @@ export default function App() {
     <View style={styles.container}>
       {timerClicked && <Timer onPress={onPressTimerItem} />}
       {!image ? (
-        <Camera style={styles.camera} type={type} ref={camreaRef}>
+        <Camera style={styles.camera} type={type} ref={cameraRef}>
           <View style={styles.buttonContainer}>
             <Button
               icon={"retweet"}
