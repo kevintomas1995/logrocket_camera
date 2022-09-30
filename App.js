@@ -19,9 +19,9 @@ export default function App() {
   const takePicture = async () => {
     setTimerOn(true);
     setTimeout(async function () {
-      if (camreaRef) {
+      if (cameraRef) {
         try {
-          const data = await camreaRef.current.takePictureAsync();
+          const data = await cameraRef.current.takePictureAsync();
           setImage(data.uri);
           setTimerOn(false);
         } catch (error) {
