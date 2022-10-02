@@ -2,19 +2,19 @@ import { Camera } from "expo-camera";
 import { Image, StyleSheet, Text, View } from "react-native";
 import * as MediaLibrary from "expo-media-library";
 import { useState, useRef, useEffect } from "react";
+import usePermission from "./src/usePermisson";
 import Button from "./src/components/Button";
 import Timer from "./src/components/Timer";
-import usePermission from "./src/usePermisson";
 
 export default function App() {
   const hasCameraPermissions = usePermission(Camera);
-  const [image, setImage] = useState(null);
   const [type, setType] = useState(Camera.Constants.Type.front);
+  const cameraRef = useRef(null);
+  const [image, setImage] = useState(null);
   const [timerClicked, setTimerClicked] = useState(false);
   const [timer, setTimer] = useState(0);
   const [displayTimer, setDisplayTimer] = useState(timer);
   const [timerOn, setTimerOn] = useState(false);
-  const cameraRef = useRef(null);
 
   const takePicture = async () => {
     setTimerOn(true);
@@ -38,39 +38,27 @@ export default function App() {
     setDisplayTimer(timer);
 
     const interval = setInterval(() => {
-      setDisplayTimer((prevTimer) => prevTimer - 1);
+      setDisplayTimer((prevTimer) =>
+        prevTimer > 0 ? prevTimer - 1 : clearInterval(interval)
+      );
     }, 1000);
-
-    return () => {
-      setDisplayTimer(timer);
-      clearInterval(interval);
-    };
   }, [timerOn, setTimerOn, timer]);
-
-  useEffect(() => {
-    if (displayTimer === 0) {
-      return () => {
-        setDisplayTimer(timer);
-        setTimerOn(false);
-      };
-    }
-  }, [timer]);
-
-  const onPressTimerItem = (time) => {
-    setTimerClicked((prevState) => !prevState);
-    setTimer(time);
-  };
 
   const savePicture = async () => {
     if (image) {
       try {
         const asset = await MediaLibrary.createAssetAsync(image);
-        alert("Image saved to camera roll");
+        alert("Image saved!");
         setImage(null);
       } catch (error) {
         console.log(error);
       }
     }
+  };
+
+  const onPressTimerItem = (time) => {
+    setTimerClicked((prevState) => !prevState);
+    setTimer(time);
   };
 
   if (hasCameraPermissions === false) {
@@ -111,6 +99,7 @@ export default function App() {
       ) : (
         <Image style={styles.camera} source={{ uri: image }} />
       )}
+
       <View>
         {image ? (
           <View style={styles.takenImage}>
@@ -122,11 +111,7 @@ export default function App() {
             <Button title={"Save"} icon="check" onPress={savePicture} />
           </View>
         ) : (
-          <Button
-            title={"Photo"}
-            icon={"camera"}
-            onPress={takePicture}
-          />
+          <Button title={"Photo"} icon={"camera"} onPress={takePicture} />
         )}
       </View>
     </View>
@@ -155,6 +140,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 50,
   },
+  timerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
   timerText: {
     color: "#f1f1f1",
     fontSize: 16,
@@ -166,9 +155,4 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
   },
-  timerContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  
 });
